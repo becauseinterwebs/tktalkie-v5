@@ -26,17 +26,17 @@ int freeMemory() {
 // END
 
 void showMemory() {
-    Serial.print("Proc = ");
-    Serial.print(AudioProcessorUsage());
-    Serial.print(" (");    
-    Serial.print(AudioProcessorUsageMax());
-    Serial.print("),  Mem = ");
-    Serial.print(AudioMemoryUsage());
-    Serial.print(" (");    
-    Serial.print(AudioMemoryUsageMax());
-    Serial.println(")");
-    Serial.print("Free Mem: ");
-    Serial.println(freeMemory());
+    usb.print("Proc = ");
+    usb.print(AudioProcessorUsage());
+    usb.print(" (");    
+    usb.print(AudioProcessorUsageMax());
+    usb.print("),  Mem = ");
+    usb.print(AudioMemoryUsage());
+    usb.print(" (");    
+    usb.print(AudioMemoryUsageMax());
+    usb.println(")");
+    usb.print("Free Mem: ");
+    usb.println(freeMemory());
 }
 
 
@@ -85,6 +85,7 @@ void gotoSleep() {
   long l = playSound(Settings.sleep.file);
   delay(l+250);
   SLEEP:
+    //AudioNoInterrupts();
     Settings.glove.ControlButtons[App.wake_button].update();
     //pinMode(LED_BUILTIN, OUTPUT);
     digitalWrite(LED_BUILTIN, LOW);
@@ -92,11 +93,13 @@ void gotoSleep() {
     while (digitalRead(LED_BUILTIN) > 0 && timeout < 2000) {
       digitalWrite(LED_BUILTIN, LOW);
     }
-    //Snooze.hibernate( config_teensy40 );
+    usb.println("Entering sleep mode...");
+    Snooze.deepSleep( config_teensy40 );
+    //AudioInterrupts();
     timeout = 0;
     // debouce set to 15ms, so have to wait and check button status
     while (timeout < 16) Settings.glove.ControlButtons[App.wake_button].update();
-    bool awake = buttonHeld(100);
+    bool awake = buttonHeld(1000);
     if (!awake) goto SLEEP;
     softreset();
 }
@@ -115,8 +118,8 @@ void startup()
   file.close();
 
   if (err) {
-    Serial.println(F("Failed to read file, using default configuration."));
-    Serial.print("Deserialization error: "); Serial.println(err.c_str());
+    usb.println(F("Failed to read file, using default configuration."));
+    usb.print("Deserialization error: "); usb.println(err.c_str());
     strlcpy(Config.profile, "DEFAULT.TXT", sizeof(Config.profile)); // "123456789012"
     strlcpy(Config.access_code, "1138", sizeof(Config.access_code)); // "1111111111111111111111111"
     strlcpy(Config.profile_dir, "/profiles/", sizeof(Config.profile_dir));
@@ -160,9 +163,10 @@ void startup()
   debug(F("Got startup value Config.access_code: %s\n"), Config.access_code);
 
   if (strcasecmp(Config.profile, BLANK) == 0) {
-    Serial.println("Reading files");
+    usb.println("Reading files");
     // No profile specified, try to find one and load it
     char files[MAX_FILE_COUNT][FILENAME_SIZE];
+    // AudioNoInterrupts not needed here because loop is not playing yet
     byte total = listFiles(Config.profile_dir, files, MAX_FILE_COUNT, FILE_EXT, false, false);
     if (total > 0) {
       memset(Config.profile, 0, sizeof(Config.profile));
@@ -187,22 +191,29 @@ void startup()
 
   debug(F("Read access code %s\n"), Config.access_code);
 
-  Serial.println(F("\n----------------------------------------------"));
-  Serial.print(F("TKTalkie v"));
-  Serial.println(VERSION);
-  Serial.println(F("(c) 2022 TK81113/Because...Interwebs!\nwww.TKTalkie.com"));
-  Serial.print(F("Debugging is "));
-  Serial.println(Config.debug == 0 ? "OFF" : "ON");
+  usb.println(F("\n----------------------------------------------"));
+  usb.print(F("TKTalkie v"));
+  usb.println(VERSION);
+  usb.println(F("(c) 2022 TK81113/Because...Interwebs!\nwww.TKTalkie.com"));
+  usb.print(F("Debugging is "));
+  usb.println(Config.debug == 0 ? "OFF" : "ON");
   if (Config.debug == false) {
-    Serial.println(F("Type debug=1 [ENTER] to enable debug messages"));
+    usb.println(F("Type debug=1 [ENTER] to enable debug messages"));
   } else {
-    Serial.println(F("Type debug=0 [ENTER] to disable debug messages"));
+    usb.println(F("Type debug=0 [ENTER] to disable debug messages"));
   }
-  Serial.println(F("----------------------------------------------\n"));
+  usb.println(F("----------------------------------------------\n"));
 
   // Load settings from specified file
   loadSettings(Config.profile, &Settings, false);
-  
+
+  // start audio shield effects
+  // these will be moved to applySettings 
+  // once integrated
+  //waveshape1.shape(WAVESHAPE1, 17);
+  //reverb1.reverbTime(1);
+  //delay1.delay(0, 500);
+    
   // apply the settings so we can do stuff
   applySettings();
   
@@ -241,7 +252,8 @@ void startup()
   
   App.state = STATE_RUNNING;
 
- // Serial1.begin(Config.baud);
+  debug(F("Starting BLE serial at %d baud\n"),Config.baud);
+  Serial1.begin(Config.baud);
   delay(250);
 
 }
@@ -274,8 +286,8 @@ void run() {
     App.muteLoopMillis = 0;
   }
   
-  if (Serial.available()) { 
-    Serial.readBytesUntil('\n', received, MAX_DATA_SIZE);
+  if (usb.available()) { 
+    usb.readBytesUntil('\n', received, MAX_DATA_SIZE);
     memset(cmd_key, 0, sizeof(cmd_key));
     memset(cmd_val, 0, sizeof(cmd_val));
     char *key, *val, *buf;
@@ -288,6 +300,8 @@ void run() {
     debug(F("command %s, value %s\n"), cmd_key, cmd_val);
     App.autoSleepMillis = 0;
   } else if (Serial1.available() > 0) {
+    memset(cmd_key, 0, sizeof(cmd_key));
+    memset(cmd_val, 0, sizeof(cmd_val));
     char *key, *val, *buf, *buf2, *uid;      
     Serial1.readBytesUntil('\n', received, MAX_DATA_SIZE);
     debug(F("RX: %s\n"), received);
@@ -309,17 +323,25 @@ void run() {
     }
     // if there is no device id sent...no soup for you!
     if (uid == NULL || strcasecmp(uid, BLANK) == 0) {
+        debug(F("No device Id!"));
         App.ble_connected = true;
         debug(F("Invalid device id: %s\n"), uid);
         sendToApp("access", CONNECT_BAD_UID);
         App.ble_connected = false;
     } else {
+        debug(F("Processing command...\n"));
         // store the command
         strcpy(cmd_key, key);
+        debug(F("After key copy"));
         // the rest of "val" has the remaining command parameters
-        strcpy(cmd_val, buf2);
+        debug(F("copying %s to val %s\n"), buf2, cmd_val);
+        if (buf2) {
+          strcpy(cmd_val, buf2);
+        }
+        debug(F("After val copy\n"));
         // if the ble is already connected, make sure we are still talking
         // to the same device!
+        debug(F("Compare device id's -> received: %s current: %s\n"), uid, App.device_id);
         if (App.ble_connected && strcmp(uid, App.device_id) != 0) {
             // this is not the same user...
             debug(F("Device in use\n"));
@@ -328,10 +350,12 @@ void run() {
             //sendToApp("access", CONNECT_IN_USE);
             //App.ble_connected = false;
         } else {
+          debug(F("Store device id\n"));
           // store the device id
           if (strcasecmp(App.device_id, BLANK) == 0) {
             strcpy(App.device_id, uid);
           }
+          debug(F("Reset auto sleep\n"));
           App.autoSleepMillis = 0;
           debug(F("BLE Cmd: %s Value: %s Uid: %s\n"), cmd_key, cmd_val, uid);
       }
@@ -564,14 +588,14 @@ void run() {
             break;
          case CMD_SETTINGS:
             {
-              Serial.println(F(BLANK));
-              Serial.println(Settings.file);
-              Serial.println(F("--------------------------------------------------------------------------------"));
+              usb.println(F(BLANK));
+              usb.println(Settings.file);
+              usb.println(F("--------------------------------------------------------------------------------"));
               char buffer[JSON_BUFFER_SIZE];
               char *p = settingsToString(buffer, true);
-              Serial.println(p);
-              Serial.println(F("--------------------------------------------------------------------------------"));
-              Serial.println(F(BLANK));
+              usb.println(p);
+              usb.println(F("--------------------------------------------------------------------------------"));
+              usb.println(F(BLANK));
             }
             break;
          case CMD_SHOW:
@@ -615,7 +639,9 @@ void run() {
               }
               char temp[MAX_FILE_COUNT][FILENAME_SIZE];
               debug(F("Listing files in %s\n"), path);
+              AudioNoInterrupts();
               int count = listFiles(path, temp, MAX_FILE_COUNT, ext, recurse, echo);
+              AudioInterrupts();
               debug(F("Found %d files in %s\n"), count, path);
               if (strcasecmp(cmd_val, "1") == 0) {
                 debug(F("Sending file list to app\n"));
@@ -1047,7 +1073,7 @@ void run() {
         float val = rms1.read();
   
         // Uncomment this to see what your constant signal is
-        //Serial.println(val);
+        //usb.println(val);
         
         // Set a minimum and maximum level to use or you will trigger it accidentally 
         // by breathing, etc.  Adjust this level as necessary!

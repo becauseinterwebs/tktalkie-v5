@@ -99,8 +99,6 @@
  *  Please visit http://www.tktalkie.com/changelog for prior changes.
  */
 
-//#include <Snooze.h>
-//#include <SnoozeBlock.h>
 #include <Audio.h>
 #include <Wire.h>
 #include <SPI.h>
@@ -108,6 +106,7 @@
 #include <SerialFlash.h>
 #include <Bounce2.h>
 #include <ArduinoJson.h>
+#include "setup.h"
 #include "ControlButton.h"
 #include "globals.h"
 #include "utils.h"
@@ -124,7 +123,8 @@ void setup() {
   App.state = STATE_BOOTING;
   
   // Serial connection for debugging
-  Serial.begin(9600);
+  //Serial.begin(9600);
+  while (!usb);
   
   delay(250);
 
@@ -148,8 +148,8 @@ void setup() {
   // Check SD card
   // CS Pin is 10...do not change for Teensy!
   if (!(SD.begin(10))) {
-     Serial.println("Unable to access the SD card.");
-     Serial.println("Using default built-in profile");
+     usb.println("Unable to access the SD card.");
+     usb.println("Using default built-in profile");
      App.SD_OK = false;
      beep(2);
   }
@@ -166,7 +166,7 @@ void setup() {
   // load startup settings
   startup();
 
-  Serial.println("TK-Talkie started!");
+  usb.println("TK-Talkie started!");
 }
 
 void loop() 

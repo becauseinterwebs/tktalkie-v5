@@ -7,6 +7,7 @@
  */
 void beep(const byte times = 1)
 {
+  debug(F("Play beep x %d at volume %d"), times, BEEP_VOLUME);
   if (App.muted) {
     audioShield.unmuteHeadphone();
     audioShield.unmuteLineout();
@@ -86,7 +87,9 @@ void loadSoundEffects()
     debug(F("No effects directory specified"));
     return;
   }
+  AudioNoInterrupts();
   Settings.effects.count = listFiles(Settings.effects.dir, Settings.effects.files, MAX_FILE_COUNT, SOUND_EXT, false, false);
+  AudioInterrupts();
   debug(F("%d Sound effects loaded\n"), Settings.effects.count);
 }
 
@@ -99,7 +102,9 @@ void loadGloveSounds()
     debug(F("No glove directory specified"));
     return;
   }
+  AudioNoInterrupts();
   Settings.glove.count = listFiles(Settings.glove.dir, Settings.glove.files, MAX_FILE_COUNT, SOUND_EXT, false, false);
+  AudioInterrupts();
   debug(F("%d Glove sounds loaded\n"), Settings.glove.count);
 }
 
@@ -184,7 +189,7 @@ unsigned long playEffect(const char *filename)
   char buf[FILENAME_SIZE*2];
   strcpy(buf, Settings.effects.dir);
   strcat(buf, filename);
-  debug(F("Play effect: %s"), buf);
+  debug(F("Play effect: %s\n"), buf);
   return playSoundFile(EFFECTS_PLAYER, buf);
 }
 
@@ -281,8 +286,8 @@ void voiceOn()
   // Reset the "user is talking" timer
   App.stopped = 0;
   // pops are ok here ;)
-  Serial.print("VOICE: ");
-  Serial.println(Settings.voice.volume);
+  usb.print("VOICE: ");
+  usb.println(Settings.voice.volume);
   pink1.amplitude(Settings.effects.noise);
   voiceMixer.gain(0, Settings.voice.volume);
   voiceMixer.gain(1, Settings.voice.volume);

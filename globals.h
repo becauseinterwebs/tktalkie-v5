@@ -446,5 +446,61 @@ AudioConnection          patchCord14(voiceMixer, 0, i2s2, 1);
 AudioControlSGTL5000     audioShield;    //xy=113,275
 // GUItool: end automatically generated code
 
-//SnoozeDigital snoozeDigital;
-//SnoozeBlock config_teensy40(snoozeDigital);
+/*
+// GUItool: begin automatically generated code
+AudioInputI2S            i2s1;           //xy=55,329
+AudioEffectGranular      granular1;      //xy=99,186
+AudioEffectWaveshaper    waveshape1;     //xy=145,234
+AudioEffectBitcrusher    bitcrusher1;    //xy=203,279
+AudioAnalyzeRMS          rms1;           //xy=244,383
+AudioEffectFlange        flange1;        //xy=302,230
+AudioSynthNoisePink      pink1;          //xy=372,508
+AudioPlaySdWav           loopPlayer;     //xy=379,439
+AudioSynthWaveform       waveform1;      //xy=382,473
+AudioPlaySdWav           effectsPlayer;  //xy=388,404
+AudioEffectChorus        chorus1;        //xy=392,279
+AudioEffectDelay         delay1;         //xy=503,189
+AudioMixer4              effectsMixer;   //xy=590,446
+AudioEffectReverb        reverb1;        //xy=606,281
+AudioMixer4              voiceMixer;     //xy=744,311
+AudioOutputI2S           i2s2;           //xy=909,311
+AudioConnection          patchCord1(i2s1, 0, voiceMixer, 2);
+AudioConnection          patchCord2(i2s1, 0, granular1, 0);
+AudioConnection          patchCord3(i2s1, 1, rms1, 0);
+AudioConnection          patchCord4(granular1, waveshape1);
+AudioConnection          patchCord5(waveshape1, bitcrusher1);
+AudioConnection          patchCord6(bitcrusher1, flange1);
+AudioConnection          patchCord7(flange1, chorus1);
+AudioConnection          patchCord8(pink1, 0, effectsMixer, 3);
+AudioConnection          patchCord9(loopPlayer, 0, effectsMixer, 1);
+AudioConnection          patchCord10(waveform1, 0, effectsMixer, 2);
+AudioConnection          patchCord11(effectsPlayer, 0, effectsMixer, 0);
+AudioConnection          patchCord12(chorus1, delay1);
+AudioConnection          patchCord13(delay1, 0, reverb1, 0);
+AudioConnection          patchCord14(effectsMixer, 0, voiceMixer, 3);
+AudioConnection          patchCord15(reverb1, 0, voiceMixer, 0);
+AudioConnection          patchCord16(voiceMixer, 0, i2s2, 0);
+AudioConnection          patchCord17(voiceMixer, 0, i2s2, 1);
+AudioControlSGTL5000     audioShield;    //xy=109,457
+// GUItool: end automatically generated code
+
+float WAVESHAPE1[17] = {
+  -0.99,
+  -0.916,
+  -0.816,
+  -0.701,
+  -0.575,
+  -0.439,
+  -0.297,
+  -0.15,
+  0,
+  0.15,
+  0.297,
+  0.439,
+  0.575,
+  0.701,
+  0.816,
+  0.916,
+  0.99,
+};
+*/

@@ -9,23 +9,23 @@
 #ifdef CALIBRATE
  
   void sampleMic(const char *prompt, float &avg, float &loBase, float &hiBase) {
-    Serial.println(prompt);
-    Serial.print(F("Listening in "));
+    usb.println(prompt);
+    usb.print(F("Listening in "));
     for (int i = 10; i >= 0; i--) {
-      Serial.print(i);
+      usb.print(i);
       if (i > 0) {
-        Serial.print(F(" > "));
+        usb.print(F(" > "));
         delay(1000);
       }
     }
-    Serial.println(F(""));
+    usb.println(F(""));
     loBase = 0;
     hiBase = 0;
     avg = 0;
     float total = 0;
     int count = 0;
     elapsedMillis timer = 0;
-    Serial.print(F("Listening for 10 seconds..."));
+    usb.print(F("Listening for 10 seconds..."));
     voiceOn();
     while (timer < 10000) {
       if (rms1.available()) {
@@ -45,9 +45,9 @@
       }
     }
     voiceOff();
-    Serial.print("Done (");
-    Serial.print(count);
-    Serial.println(" samples)");
+    usb.print("Done (");
+    usb.print(count);
+    usb.println(" samples)");
     avg = total/count;
   }
   
@@ -64,8 +64,8 @@
     
     loopOff();
   
-    Serial.println(F("CALIBRATING...Please make sure your microphone is on!"));
-    Serial.println(F(""));
+    usb.println(F("CALIBRATING...Please make sure your microphone is on!"));
+    usb.println(F(""));
   
     float avg = 0;
     float loBase = 0;
@@ -74,18 +74,18 @@
     char buf[SETTING_ENTRY_MAX];
   
     sampleMic("Please speak normally into your microphone when the countdown reaches 0", avg, loBase, hiBase);
-    Serial.print("Average Trigger level: ");
+    usb.print("Average Trigger level: ");
     dtostrf(avg, 0, 4, buf);
-    Serial.print(buf);
-    Serial.print(" (Low: ");
+    usb.print(buf);
+    usb.print(" (Low: ");
     memset(buf, 0, sizeof(buf));
     dtostrf(loBase, 0, 4, buf);
-    Serial.print(buf);
-    Serial.print(" Peak: ");
+    usb.print(buf);
+    usb.print(" Peak: ");
     memset(buf, 0, sizeof(buf));
     dtostrf(hiBase, 0, 4, buf);
-    Serial.print(buf);
-    Serial.println(")");
+    usb.print(buf);
+    usb.println(")");
     memset(buf, 0, sizeof(buf));
     avg += .01;
     strcpy(recom,  "voice_start=");
@@ -94,23 +94,23 @@
     strcat(recom, "\n");
     memset(buf, 0, sizeof(buf));
     
-    Serial.println("");
+    usb.println("");
     sampleMic("Please leave your microphone on and keep silent so that we can get a baseline...", avg, loBase, hiBase);
-    Serial.println("Average Baseline level: ");
+    usb.println("Average Baseline level: ");
     dtostrf(avg, 0, 4, buf);
-    Serial.print(buf);
-    Serial.print(" (Low: ");
+    usb.print(buf);
+    usb.print(" (Low: ");
     memset(buf, 0, sizeof(buf));
     dtostrf(loBase, 0, 4, buf);
-    Serial.print(buf);
-    Serial.print(" Peak: ");
+    usb.print(buf);
+    usb.print(" Peak: ");
     memset(buf, 0, sizeof(buf));
     dtostrf(hiBase, 0, 4, buf);
-    Serial.print(buf);
-    Serial.println(")");
+    usb.print(buf);
+    usb.println(")");
     memset(buf, 0, sizeof(buf));
     
-    Serial.println("");
+    usb.println("");
     
     if (avg < 0.01) {
       avg = 0.01;
@@ -121,11 +121,11 @@
     strcat(recom, "\n");
     memset(buf, 0, sizeof(buf));
   
-    Serial.println(F(""));
+    usb.println(F(""));
     showFile("CALIBRATE.TXT");
-    Serial.println(F(""));
-    Serial.println(recom);
-    Serial.println(F(""));
+    usb.println(F(""));
+    usb.println(recom);
+    usb.println(F(""));
   
     loopOn();
     

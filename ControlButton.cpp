@@ -31,7 +31,6 @@ byte ControlButton::check()
     boolean released = false;
     elapsedMillis t = 0;
     while (t < 350 && released == false) {
-      Serial.println(t);
       this->_button.update();
       if (this->_button.read() != 0) {
         released = true;
@@ -41,7 +40,6 @@ byte ControlButton::check()
     if (released == false) {
       this->_value = 2;
     }
-    Serial.println("");
   }
   return this->_value;
 }

@@ -44,7 +44,7 @@ void ConfigureButton(byte a) {
               if (App.wake_button == BUTTON_UNSET) {
                 debug(F("Setting button %d to wake button\n"), a);
                 App.wake_button = a;
-                //snoozeDigital.pinMode(pin, INPUT_PULLUP, FALLING);
+                snoozeDigital.pinMode(pin, INPUT_PULLUP, FALLING);
               }
             }  
             break;
@@ -59,7 +59,7 @@ void ConfigureButton(byte a) {
             {
               debug(F("Sleep Button on pin: %d\n"), pin);
               App.wake_button = a;
-              //snoozeDigital.pinMode(pin, INPUT_PULLUP, FALLING);
+              snoozeDigital.pinMode(pin, INPUT_PULLUP, FALLING);
             }  
             break;   
         }
@@ -584,9 +584,12 @@ boolean saveConfig() {
   debug(F("Saving Config data to %s\n"), filename);
   
   // Open file for writing
+  AudioNoInterrupts();
+  
   File file = openFile(filename, FILE_WRITE);
   if (!file) {
     debug(F("Failed to create file"));
+    AudioInterrupts();
     return false;
   }
 
@@ -625,6 +628,9 @@ boolean saveConfig() {
   }
   // Close the file (File's destructor doesn't close the file)
   file.close();
+  
+  AudioInterrupts();
+  
   return true;
   
 }
@@ -788,6 +794,7 @@ boolean saveSettings(const char *src, const boolean backup = true)
     strcat(backupfile, filename);
     addBackupExt(backupfile);
     debug(F("Backup File: %s\n"), backupfile);
+    AudioNoInterrupts();
     File bakFile = openFile(backupfile, FILE_WRITE);
     File srcFile = openFile(srcFileName, FILE_READ);
     if (bakFile && srcFile) {
@@ -808,11 +815,13 @@ boolean saveSettings(const char *src, const boolean backup = true)
         bakFile.close();
       }
     }
+    AudioInterrupts();
   }
   // now save file
   debug(F("Saving profile to: %s\n"), srcFileName);
-  
- File newFile = openFile(srcFileName, FILE_WRITE);
+
+  AudioNoInterrupts();
+  File newFile = openFile(srcFileName, FILE_WRITE);
   if (newFile) {
     char buffer[JSON_BUFFER_SIZE];
     char* p = settingsToString(buffer, true);
@@ -825,6 +834,7 @@ boolean saveSettings(const char *src, const boolean backup = true)
   } else {
     debug(F("**ERROR** saving to %s\n"), srcFileName);
   }
+  AudioInterrupts();
   return result;
   
 }
@@ -836,7 +846,9 @@ boolean setDefaultProfile(char *filename)
     addFileExt(filename);
     debug(F("Setting default profile to %s\n"), filename);
     char profiles[MAX_FILE_COUNT][FILENAME_SIZE];
+    AudioNoInterrupts();
     int total = listFiles(Config.profile_dir, profiles, MAX_FILE_COUNT, FILE_EXT, false, false);
+    AudioInterrupts();
     boolean result = false;
     boolean found = false;
     for (int i = 0; i < total; i++) {
@@ -911,11 +923,14 @@ void loadSettings(char *filename, Settings_t *settings, const boolean nameOnly)
   strcat(srcFileName, filename);
 
   debug(F("Loading settings file: %s\n"), srcFileName);
+
+  AudioNoInterrupts();
   
   File file = SD.open(srcFileName);
 
   if (!file) {
     debug(F("Error reading file %s\n"), srcFileName);
+    AudioInterrupts();
     return;
   } else {
     debug(F("Opened %s\n"), srcFileName);
@@ -927,6 +942,8 @@ void loadSettings(char *filename, Settings_t *settings, const boolean nameOnly)
   debug(F("After file parse\n"));
 
   file.close();
+
+  AudioNoInterrupts();
   
   if (err) {
     debug(F("ERROR PARSING SETTINGS FILE %s! Error: %s\n"), srcFileName, err.c_str());

@@ -13,7 +13,7 @@ void btprint(const __FlashStringHelper *fmt, ... ) {
 #endif
   va_end(args);
   if (Config.echo == true) {
-    Serial.print(F(buf));
+    usb.print(F(buf));
   }
   // break into chunks
   int l = strlen(buf);
@@ -71,7 +71,7 @@ void sendToApp(const char *cmd, const byte value)
 }
 
 /**
- * Sends config via Bluetooth Serial.  Used for TKTalkie App
+ * Sends config via Bluetooth usb.  Used for TKTalkie App
  */
 void sendConfig() 
 {
@@ -97,6 +97,9 @@ void sendConfig()
   char filename[MAX_FILENAME*2];
   strcpy(filename, Config.profile_dir);
   strcat(filename, Settings.file);
+  
+  AudioNoInterrupts();
+  
   File file = SD.open(filename);
   if (file) {
     char c;
@@ -106,7 +109,7 @@ void sendConfig()
       if (c != '\n' && c != '\r') {
         if ( (c == ' ' && lastChar != ' ' && lastChar != '{' && lastChar != ',' && lastChar != ':' && lastChar != '}' && lastChar != ']' && lastChar != '[') || ( c != ' ') ) {
           lastChar = c;
-          Serial.print(c);
+          usb.print(c);
           Serial1.print(c);
         }
       }  
@@ -115,7 +118,7 @@ void sendConfig()
   } else {
     Serial1.print("{}");
   }
-    
+
   btprint(F(",\"profiles\":["));
   
   // get config profile files 
@@ -137,7 +140,7 @@ void sendConfig()
   char buttons[20];
   sprintf(buttons, "[%d,%d,%d,%d,%d,%d]", Config.buttons[0], Config.buttons[1], Config.buttons[2], Config.buttons[3], Config.buttons[4], Config.buttons[5]);
   btprint(F("],\"buttons\":%s,"), buttons);
-  
+
   count = listFiles(Settings.sounds.dir, files, MAX_FILE_COUNT, SOUND_EXT, false, false);
 
   // Add sound files
@@ -191,6 +194,8 @@ void sendConfig()
   
   // end
   btprint(F("}}\n"));
+
+  AudioInterrupts();
   
 }
 
@@ -201,4 +206,3 @@ void sendButtonPress(const byte pbutton, const byte vbutton)
   sprintf(val, "%d,%d", pbutton, vbutton);
   sendToApp("press", val);
 }
-

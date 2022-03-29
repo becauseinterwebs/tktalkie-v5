@@ -20,8 +20,8 @@ void debug(const __FlashStringHelper *fmt, ... ) {
   vsnprintf(buf, sizeof(buf), (const char *)fmt, args); // for the rest of the world
 #endif
   va_end(args);
-  Serial.print(F("[DEBUG] "));
-  Serial.print(F(buf));
+  usb.print(F("[DEBUG] "));
+  usb.print(F(buf));
 }
 
 /**

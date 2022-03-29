@@ -93,11 +93,11 @@ void showFile(const char *filename) {
     char c;
     while (file.available()) {
       c = file.read();
-      Serial.print(c);
+      usb.print(c);
     }
     file.close();
   } else {
-    Serial.println(F("Could not find file!"));
+    usb.println(F("Could not find file!"));
   }
   AudioInterrupts();
 }
@@ -109,10 +109,12 @@ String dirSep = "";
 
 int listDirectories(const char *path, char directories[][FILENAME_SIZE])
 {
+   AudioNoInterrupts();
    int index = 0;
    File dir = SD.open(path);
    if (!dir) {
     debug(F("Could not open %s!\n"), path);
+    AudioInterrupts();
     return 0;
    }
    dir.rewindDirectory();
@@ -135,6 +137,7 @@ int listDirectories(const char *path, char directories[][FILENAME_SIZE])
      }  
      entry.close();
    }
+   AudioInterrupts();
    debug(F("%d directories found\n"), index);
    return index;
 }
@@ -143,6 +146,7 @@ int listDirectories(const char *path, char directories[][FILENAME_SIZE])
  * Return a directory listing.
  * If filter is specified, only file names containing
  * the filter text are returned.
+ * !!!! NEED TO CALL AudioNoInterrupts()/AudioInterrupts() before/after
  */
  int listFiles(const char *path, char files[][FILENAME_SIZE], int max, const char *match, boolean recurse, boolean echo) 
 {
@@ -158,14 +162,14 @@ int listDirectories(const char *path, char directories[][FILENAME_SIZE])
     debug(F("Path %s not found!\n"), path);
     return 0;
   }
-  AudioNoInterrupts();
+
   File dir = SD.open(path);
   if (!dir) {
     debug(F("Could not open %s!\n"), path);
-    AudioInterrupts();
     return 0;
   }
   dir.rewindDirectory();
+
   while(true && index < max) {
      File entry = dir.openNextFile();
      if (! entry) {
@@ -187,26 +191,28 @@ int listDirectories(const char *path, char directories[][FILENAME_SIZE])
          index += listFiles(entry.name(), files, max-index, filter, recurse, echo);
        }
      } else {
-        char *fname = entry.name();
-        upcase(fname);
-        // Filter out filenames with ~ (backups)
-        char *ret = strstr(fname, "~");
-        if (ret == NULL) {
-            debug(F("%s is not a backup file\n"), entry.name());
-            ret = strstr(fname, "._");
-            if (ret == NULL) {
-              debug(F("%s is not a system file\n"), entry.name());
-              if (checkFilter) {
-                ret = strstr(fname, filter);
-                if (ret == NULL) {
-                  fname[0] = '\0';
-                }
+       char *fname = entry.name();
+       upcase(fname);
+       debug(F("Checking %s\n"), fname);
+       char *ret = strstr(entry.name(), "~");
+       if (ret == NULL) {
+          ret = strstr(entry.name(), ".");
+          if (ret != NULL && strcmp(ret, fname) != 0) {
+            // Filter out filenames that start with with ~ or . (backups)
+            if (checkFilter) {
+              ret = strstr(fname, filter);
+              if (ret == NULL) {
+                fname[0] = '\0';
               }
             }
+          } else {
+            fname[0] = '\0';
+          }
         } else {
-          fname[0] ='\0';
+          fname[0] = '\0';
         }
         if (strcasecmp(fname, "") != 0) {
+            debug(F("%s is a valid name\n"), fname);
             if (echo || Config.debug == 1) {
               debug(F("%s%s\n"), dirSep, entry.name());
             }
@@ -218,6 +224,5 @@ int listDirectories(const char *path, char directories[][FILENAME_SIZE])
      }
      entry.close();
    }
-   AudioInterrupts();
    return index;
 }
