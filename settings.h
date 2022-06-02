@@ -434,7 +434,7 @@ void parseSetting(const char *settingName, char *settingValue)
   } else if (strcasecmp(settingName, SETTING_MUTE_EFFECTS) == 0) {
     Settings.effects.mute = (byte)atoi(settingValue);
     setEffectsMute();
-  } else if (strcasecmp(settingName, SETTING_SLEEP_TIME) == 0) {
+  } else if (strcasecmp(settingName, SETTING_SLEEP_TIMER) == 0) {
     Settings.sleep.timer = (byte)atoi(settingValue);
     setSleepTimer();
   } else if (strcasecmp(settingName, SETTING_SLEEP_SOUND) == 0) {

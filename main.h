@@ -78,6 +78,7 @@ bool buttonHeld(unsigned long msecs) {
 }
 
 void gotoSleep() {
+  
   App.state = STATE_SLEEPING;
   if (loopPlayer.isPlaying()) {
     loopPlayer.stop();
@@ -712,6 +713,8 @@ void run() {
           continue;
         }
 
+        App.autoSleepMillis = 0;
+
         sendButtonPress(i, whichButton);
       
         switch(btype) {
@@ -1123,8 +1126,9 @@ void run() {
     readVolume();
 
   // Sleep mode check
-  if (Settings.sleep.timer > 0 && (App.autoSleepMillis >= (Settings.sleep.timer * 60000))) {
-      //gotoSleep();
+  // Only sleep if wake button is set!
+  if (App.wake_button != BUTTON_UNSET && Settings.sleep.timer > 0 && (App.autoSleepMillis >= (Settings.sleep.timer * 60000))) {
+      gotoSleep();
   }
 
 }

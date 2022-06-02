@@ -2,7 +2,7 @@
  * TK TALKIE by TK-81113 (Brent Williams) <becauseinterwebs@gmail.com>
  * www.tktalkie.com / www.tk81113.com 
  * 
- * Version 5.0
+ * Version 5.1
  *
  * WhiteArmor.net User ID: lerxstrulz
  * 
@@ -23,6 +23,11 @@
  * 
  * WHAT'S NEW:
  * 
+ * v5.1 (06/02/2022)
+ *  1. Added check for wake button in sleep check.  If no wake button is programmed,
+ *     it will not go to sleep.
+ *  2. Added sleep timeout reset to button press events (previously only on voice events.)
+ *  
  * v5.0 (03/09/2022)
  *  1.  Updating sketch to work with Teensy 4.0.
  *  
@@ -124,7 +129,6 @@ void setup() {
   
   // Serial connection for debugging
   //Serial.begin(9600);
-  while (!usb);
   
   delay(250);
 

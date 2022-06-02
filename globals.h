@@ -106,7 +106,7 @@
 #define SETTING_GLOVE_DIR       "glove_dir"
 #define SETTING_MUTE_LOOP       "mute_loop"
 #define SETTING_MUTE_EFFECTS    "mute_effects"
-#define SETTING_SLEEP_TIME      "sleep_time"
+#define SETTING_SLEEP_TIMER     "sleep_timer"
 #define SETTING_SLEEP_SOUND     "sleep_sound"
 #define SETTING_CHORUS          "chorus"
 #define SETTING_SHIFTER         "shifter"
