@@ -7,6 +7,21 @@
 *NOTICE!*
 This version of the firmware is made to work with the Teensy 4.0 and Audio Shield for Teensy 4.0 (a.k.a Rev D).  To download firmware for a build with Teensy 3.2, please see the [v4 repository](https://github.com/becauseinterwebs/TKTalkie-V4).
 
+### About TK-Talkie
+*TK-Talkie* is a voice-effects processor that allows you to add that extra layer to your Star Wars (and others!) costuming.
+
+It offers many features that make it an indispensible part of your kit.
+
+  - Real-time voice processing including pitch shifting (raise/lower voice)
+  - Dry/wet mixing (mixed processed voice with unprocessed voice)
+  - 5-band equalizer
+  - Effects such as bitcrusher, flanger and chorus
+  - Control Gloves with up to 12 buttons
+  - Multiple costume profiles
+  - Configured with mobile app (Android/iOS)
+
+Learn more at [tktalkie.com](https://tktalkie.com)
+ 
 ### Changes
 
 v5.1
