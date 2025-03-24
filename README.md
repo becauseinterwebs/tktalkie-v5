@@ -1,5 +1,7 @@
 # TK-Talkie Firmware v5
 
+![image](https://cdn.tktalkie.com/tktalkiebanner.png)
+
 ### Latest release: v5.1 (06/02/2022)
 
 *NOTICE!*
@@ -25,3 +27,6 @@ You will need the Arduio IDE and to install the TeensyDuino application from [PJ
 ### Support 
 
 Support is provided through the community on the build support page on [Facebook](https://www.facebook.com/groups/tktalkie)
+
+### Purchase
+You can also purchase a completed TK-Talkie at the [TK-Talkie Store](https://tktalkie.com/shop)
